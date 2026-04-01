@@ -1,0 +1,25 @@
+{
+    "app_title": "U-Prox Desktop Manager",
+    "controls": {
+        "port_label": "COM Порт:",
+        "scan_text": "Сканування...",
+        "refresh_button": "Оновити",
+        "connect_button": "Підключити",
+        "disconnect_button": "Відключити"
+    },
+    "buttons": {
+        "info": "Інфо",
+        "erase_card": "Стерти Карту",
+        "set_number": "Встановити Номер",
+        "start_issue": "Почати Випуск (SL3)",
+        "stop_issue": "Зупинити Випуск",
+        "set_sl3_key": "Встановити SL3 Ключ"
+    },
+    "dialogs": {
+        "error_title": "Помилка",
+        "input_title": "Введення",
+        "no_port_selected": "Не вибрано COM порт.",
+        "sl3_key_prompt": "Введіть SL3 ключ (32 HEX символи):",
+        "start_number_prompt": "Введіть стартовий номер (10 HEX символів):"
+    }
+}

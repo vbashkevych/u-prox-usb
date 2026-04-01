@@ -1,0 +1,25 @@
+{
+    "app_title": "U-Prox Desktop Manager",
+    "controls": {
+        "port_label": "COM Port:",
+        "scan_text": "Scanning...",
+        "refresh_button": "Refresh",
+        "connect_button": "Connect",
+        "disconnect_button": "Disconnect"
+    },
+    "buttons": {
+        "info": "Info",
+        "erase_card": "Erase Card",
+        "set_number": "Set Number",
+        "start_issue": "Start Issue (SL3)",
+        "stop_issue": "Stop Issue",
+        "set_sl3_key": "Set SL3 Key"
+    },
+    "dialogs": {
+        "error_title": "Error",
+        "input_title": "Input",
+        "no_port_selected": "No COM port selected.",
+        "sl3_key_prompt": "Enter SL3 key (32 HEX chars):",
+        "start_number_prompt": "Enter start number (10 HEX chars):"
+    }
+}
