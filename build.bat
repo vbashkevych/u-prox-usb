@@ -1,0 +1,1 @@
+pyinstaller --onefile --windowed --add-data "locale;locale" --name U-Prox-USB gui.py
