@@ -1,24 +1,28 @@
-from typing import Dict, List, Callable, Type
+from typing import Dict, List, Callable, Type, Final, TypeVar
+from dataclasses import dataclass
 
+T = TypeVar('T', bound='Event')
+
+@dataclass(frozen=True)
 class Event:
     """Базовий клас для всіх подій."""
     pass
 
+@dataclass(frozen=True)
 class LogEvent(Event):
     """Подія для логування повідомлення."""
-    def __init__(self, message: str):
-        self.message = message
+    message: str
 
+@dataclass(frozen=True)
 class PortsUpdatedEvent(Event):
     """Подія, що сповіщає про оновлення списку портів."""
-    def __init__(self, ports: List[str], port_map: Dict[str, str]):
-        self.ports = ports
-        self.port_map = port_map
+    ports: List[str]
+    port_map: Dict[str, str]
 
+@dataclass(frozen=True)
 class ConnectionStatusEvent(Event):
     """Подія про зміну статусу підключення."""
-    def __init__(self, is_connected: bool):
-        self.is_connected = is_connected
+    is_connected: bool
 
 
 class EventManager:
@@ -29,17 +33,17 @@ class EventManager:
     def __init__(self) -> None:
         self._listeners: Dict[Type[Event], List[Callable[[Event], None]]] = {}
 
-    def subscribe(self, event_type: Type[Event], callback: Callable[[Event], None]) -> None:
+    def subscribe(self, event_type: Type[T], callback: Callable[[T], None]) -> None:
         """Підписує слухача на певний тип події."""
         if event_type not in self._listeners:
             self._listeners[event_type] = []
-        self._listeners[event_type].append(callback)
+        self._listeners[event_type].append(callback)  # type: ignore
 
-    def unsubscribe(self, event_type: Type[Event], callback: Callable[[Event], None]) -> None:
+    def unsubscribe(self, event_type: Type[T], callback: Callable[[T], None]) -> None:
         """Відписує слухача від події."""
         if event_type in self._listeners:
             try:
-                self._listeners[event_type].remove(callback)
+                self._listeners[event_type].remove(callback)  # type: ignore
             except ValueError:
                 # Ігноруємо помилку, якщо слухач вже був відписаний
                 pass

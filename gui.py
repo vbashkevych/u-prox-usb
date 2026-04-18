@@ -1,15 +1,17 @@
 import tkinter as tk
 from tkinter import scrolledtext, messagebox, simpledialog, ttk
-from typing import Dict, Optional
+from typing import Dict, Optional, Final
 import json
 import os
+import asyncio
+import threading
 
 from logic import ReaderService
 from events import EventManager, LogEvent, PortsUpdatedEvent, ConnectionStatusEvent
 
 class Translator:
     """
-    Простий клас для локалізації за допомогою JSON файлів.
+    Клас для локалізації за допомогою JSON файлів.
     """
     def __init__(self, locale_dir: str, language: str = 'uk'):
         self.translations: Dict[str, any] = {}
@@ -23,34 +25,28 @@ class Translator:
         try:
             with open(path, 'r', encoding='utf-8') as f:
                 self.translations = json.load(f)
-        except FileNotFoundError:
-            print(f"Warning: Translation file for '{language}' not found. Falling back to keys.")
+        except (FileNotFoundError, json.JSONDecodeError) as e:
+            print(f"Warning: Could not load translations for '{language}': {e}")
             self.translations = {}
 
     def get(self, key: str, default: Optional[str] = None) -> str:
-        """
-        Отримує переклад за ключем.
-        Ключі можуть бути вкладеними, розділеними крапкою (напр., 'controls.port_label').
-        """
-        keys = key.split('.')
+        """Отримує переклад за ключем (підтримує вкладені ключі через крапку)."""
         value = self.translations
         try:
-            for k in keys:
+            for k in key.split('.'):
                 value = value[k]
             return str(value)
         except (KeyError, TypeError):
             return default if default is not None else key
 
 # --- Налаштування локалізації ---
-LOCALE_DIR = os.path.join(os.path.dirname(__file__), 'locale')
-# Можна змінити на 'en' для перевірки англійської мови
-translator = Translator(LOCALE_DIR, language='uk')
-# --- Кінець налаштування ---
-
+LOCALE_DIR: Final[str] = os.path.join(os.path.dirname(__file__), 'locale')
+translator: Final[Translator] = Translator(LOCALE_DIR, language='uk')
 
 class App:
-    def __init__(self, root: tk.Tk) -> None:
+    def __init__(self, root: tk.Tk, loop: asyncio.AbstractEventLoop) -> None:
         self.root: tk.Tk = root
+        self.loop: asyncio.AbstractEventLoop = loop
         self.root.title(translator.get("app_title"))
         self.root.geometry("800x600")
 
@@ -61,9 +57,14 @@ class App:
         self.create_widgets()
         self.subscribe_to_events()
         
-        self.service.probe_ports()
+        # Запускаємо початковий пошук портів асинхронно
+        self.run_async(self.service.probe_ports_async())
 
         self.root.protocol("WM_DELETE_WINDOW", self.on_closing)
+
+    def run_async(self, coro) -> None:
+        """Запускає корутину в циклі подій asyncio."""
+        asyncio.run_coroutine_threadsafe(coro, self.loop)
 
     def subscribe_to_events(self) -> None:
         self.events.subscribe(LogEvent, self.on_log_event)
@@ -80,10 +81,12 @@ class App:
         self.port_combo.grid(row=0, column=1, sticky='we')
         self.port_combo.set(translator.get('controls.scan_text'))
         
-        self.refresh_button = tk.Button(control_frame, text=translator.get("controls.refresh_button"), command=self.service.probe_ports)
+        self.refresh_button = tk.Button(control_frame, text=translator.get("controls.refresh_button"), 
+                                       command=lambda: self.run_async(self.service.probe_ports_async()))
         self.refresh_button.grid(row=0, column=2, padx=5)
 
-        self.connect_button = tk.Button(control_frame, text=translator.get("controls.connect_button"), command=self.toggle_connection)
+        self.connect_button = tk.Button(control_frame, text=translator.get("controls.connect_button"), 
+                                       command=self.toggle_connection)
         self.connect_button.grid(row=0, column=3, padx=10)
 
         self.log_area = scrolledtext.ScrolledText(self.root, state='disabled', wrap=tk.WORD, height=20)
@@ -92,19 +95,25 @@ class App:
         command_frame = tk.Frame(self.root, padx=10, pady=5)
         command_frame.pack(fill=tk.X)
         
-        tk.Button(command_frame, text=translator.get("buttons.info"), command=self.service.get_device_info).pack(side=tk.LEFT, padx=5)
-        tk.Button(command_frame, text=translator.get("buttons.erase_card"), command=self.service.erase_mifare_card).pack(side=tk.LEFT, padx=5)
-        tk.Button(command_frame, text=translator.get("buttons.set_number"), command=self.set_start_number).pack(side=tk.LEFT, padx=5)
-        tk.Button(command_frame, text=translator.get("buttons.start_issue"), command=self.service.start_issue_sl3).pack(side=tk.LEFT, padx=5)
-        tk.Button(command_frame, text=translator.get("buttons.stop_issue"), command=self.service.stop_issue).pack(side=tk.LEFT, padx=5)
-        tk.Button(command_frame, text=translator.get("buttons.set_sl3_key"), command=self.set_sl3_key).pack(side=tk.LEFT, padx=5)
+        tk.Button(command_frame, text=translator.get("buttons.info"), 
+                  command=lambda: self.run_async(self.service.get_device_info_async())).pack(side=tk.LEFT, padx=5)
+        tk.Button(command_frame, text=translator.get("buttons.erase_card"), 
+                  command=lambda: self.run_async(self.service.erase_mifare_card_async())).pack(side=tk.LEFT, padx=5)
+        tk.Button(command_frame, text=translator.get("buttons.set_number"), 
+                  command=self.set_start_number).pack(side=tk.LEFT, padx=5)
+        tk.Button(command_frame, text=translator.get("buttons.start_issue"), 
+                  command=lambda: self.run_async(self.service.start_issue_sl3_async())).pack(side=tk.LEFT, padx=5)
+        tk.Button(command_frame, text=translator.get("buttons.stop_issue"), 
+                  command=lambda: self.run_async(self.service.stop_issue_async())).pack(side=tk.LEFT, padx=5)
+        tk.Button(command_frame, text=translator.get("buttons.set_sl3_key"), 
+                  command=self.set_sl3_key).pack(side=tk.LEFT, padx=5)
 
     def on_log_event(self, event: LogEvent) -> None:
         self.root.after(0, self._update_log_area, event.message)
 
     def _update_log_area(self, message: str) -> None:
         self.log_area.configure(state='normal')
-        self.log_area.insert(tk.END, str(message) + '\n')
+        self.log_area.insert(tk.END, f"{message}\n")
         self.log_area.configure(state='disabled')
         self.log_area.see(tk.END)
 
@@ -140,27 +149,28 @@ class App:
                 return
             port = self.port_map.get(selected_desc)
             if port:
-                self.service.connect(port)
+                self.run_async(self.service.connect_async(port))
         else:
-            self.service.disconnect()
+            self.run_async(self.service.disconnect_async())
 
     def on_closing(self) -> None:
+        # Спроба асинхронного відключення перед закриттям
         if self.service.is_connected:
-            self.service.disconnect()
+            # Тут ми не можемо використовувати run_async, бо цикл може зупинитися
+            # Тому використовуємо синхронний метод або чекаємо завершення
+            try:
+                # Створюємо новий цикл або використовуємо поточний для швидкої операції
+                self.run_async(self.service.disconnect_async())
+            except Exception:
+                pass
         self.root.destroy()
 
     def set_sl3_key(self) -> None:
         key = simpledialog.askstring(translator.get("dialogs.input_title"), translator.get("dialogs.sl3_key_prompt"), parent=self.root)
         if key:
-            self.service.set_mifare_plus_sl3_encryption(key)
+            self.run_async(self.service.set_mifare_plus_sl3_encryption_async(key))
 
     def set_start_number(self) -> None:
         num = simpledialog.askstring(translator.get("dialogs.input_title"), translator.get("dialogs.start_number_prompt"), parent=self.root)
         if num:
-            self.service.set_mifare_start_number(num)
-
-
-if __name__ == "__main__":
-    root = tk.Tk()
-    app = App(root)
-    root.mainloop()
+            self.run_async(self.service.set_mifare_start_number_async(num))
