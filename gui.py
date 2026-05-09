@@ -179,6 +179,9 @@ class App:
                                            text_color=("gray10", "gray90"), hover_color=("gray70", "gray30"),
                                            command=lambda: self.on_theme_change("System"))
         self.auto_theme_btn.pack(side="left", padx=2)
+        
+        # Початкове підсвічування активної теми
+        self.update_theme_buttons(ctk.get_appearance_mode())
 
         # --- Main Content Area ---
         self.main_frame = ctk.CTkFrame(self.root, corner_radius=0, fg_color="transparent")
@@ -321,6 +324,17 @@ class App:
 
     def on_theme_change(self, new_theme):
         ctk.set_appearance_mode(new_theme)
+        self.update_theme_buttons(new_theme)
+
+    def update_theme_buttons(self, active_theme):
+        """Оновлює візуальний стан кнопок тем."""
+        # Кольори для активної та неактивної кнопки
+        active_fg = ("#3B8ED0", "#1F6AA5") # Стандартний синій CTk
+        inactive_fg = "transparent"
+        
+        self.light_theme_btn.configure(fg_color=active_fg if active_theme == "Light" else inactive_fg)
+        self.dark_theme_btn.configure(fg_color=active_fg if active_theme == "Dark" else inactive_fg)
+        self.auto_theme_btn.configure(fg_color=active_fg if active_theme == "System" else inactive_fg)
 
     def refresh_ui_text(self) -> None:
         """Оновлює текст на всіх віджетах після зміни мови."""
