@@ -23,6 +23,9 @@
         "input_title": "Введення",
         "no_port_selected": "Не вибрано COM порт.",
         "sl3_key_prompt": "Введіть SL3 ключ (32 HEX символи):",
-        "start_number_prompt": "Введіть стартовий номер (10 HEX символів):"
+        "start_number_prompt": "Введіть номер картки:",
+        "ok": "ОК",
+        "cancel": "Скасувати",
+        "invalid_input": "Невірний формат вводу"
     }
 }

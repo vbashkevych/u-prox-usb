@@ -23,6 +23,9 @@
         "input_title": "Input",
         "no_port_selected": "No COM port selected.",
         "sl3_key_prompt": "Enter SL3 key (32 HEX chars):",
-        "start_number_prompt": "Enter start number (10 HEX chars):"
+        "start_number_prompt": "Enter card number:",
+        "ok": "OK",
+        "cancel": "Cancel",
+        "invalid_input": "Invalid input format"
     }
 }
