@@ -49,6 +49,7 @@ class CardNumberDialog(ctk.CTkToplevel):
         super().__init__(parent)
         self.title(title)
         self.geometry("300x250")
+        self.resizable(False, False)
         self.result = None
 
         self.label = ctk.CTkLabel(self, text=text)
@@ -58,11 +59,14 @@ class CardNumberDialog(ctk.CTkToplevel):
         self.entry.pack(padx=20, pady=10)
         self.entry.focus_set()
 
+        self.radio_frame = ctk.CTkFrame(self, fg_color="transparent")
+        self.radio_frame.pack(padx=20, pady=5)
+
         self.format_var = tk.StringVar(value="HEX")
-        self.hex_radio = ctk.CTkRadioButton(self, text="HEX", variable=self.format_var, value="HEX")
-        self.hex_radio.pack(padx=20, pady=5)
-        self.dec_radio = ctk.CTkRadioButton(self, text="DEC", variable=self.format_var, value="DEC")
-        self.dec_radio.pack(padx=20, pady=5)
+        self.hex_radio = ctk.CTkRadioButton(self.radio_frame, text="HEX", variable=self.format_var, value="HEX", width=80)
+        self.hex_radio.pack(side="left", padx=10)
+        self.dec_radio = ctk.CTkRadioButton(self.radio_frame, text="DEC", variable=self.format_var, value="DEC", width=80)
+        self.dec_radio.pack(side="left", padx=10)
 
         self.button_frame = ctk.CTkFrame(self, fg_color="transparent")
         self.button_frame.pack(padx=20, pady=20)
