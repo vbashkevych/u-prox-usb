@@ -1,6 +1,7 @@
 import tkinter as tk
 from tkinter import scrolledtext, messagebox, simpledialog, ttk
-from typing import Dict, Optional, Final
+import customtkinter as ctk
+from typing import Dict, Optional, Final, Any
 import json
 import os
 import asyncio
@@ -14,7 +15,7 @@ class Translator:
     Клас для локалізації за допомогою JSON файлів.
     """
     def __init__(self, locale_dir: str, language: str = 'uk'):
-        self.translations: Dict[str, any] = {}
+        self.translations: Dict[str, Any] = {}
         self.language = language
         self.locale_dir = locale_dir
         self.load_language(self.language)
@@ -44,11 +45,11 @@ LOCALE_DIR: Final[str] = os.path.join(os.path.dirname(__file__), 'locale')
 translator: Final[Translator] = Translator(LOCALE_DIR, language='uk')
 
 class App:
-    def __init__(self, root: tk.Tk, loop: asyncio.AbstractEventLoop) -> None:
-        self.root: tk.Tk = root
+    def __init__(self, root: ctk.CTk, loop: asyncio.AbstractEventLoop) -> None:
+        self.root: ctk.CTk = root
         self.loop: asyncio.AbstractEventLoop = loop
         self.root.title(translator.get("app_title"))
-        self.root.geometry("800x600")
+        self.root.geometry("1000x700")
 
         self.events: EventManager = EventManager()
         self.service: ReaderService = ReaderService(self.events)

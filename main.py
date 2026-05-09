@@ -1,4 +1,4 @@
-import tkinter as tk
+import customtkinter as ctk
 import asyncio
 import threading
 import sys
@@ -6,6 +6,10 @@ from gui import App
 
 def main() -> None:
     """Головна точка входу в програму."""
+    # Налаштування CustomTkinter
+    ctk.set_appearance_mode("dark")
+    ctk.set_default_color_theme("blue")
+
     # Створюємо цикл подій asyncio в окремому потоці
     # Це дозволяє нам виконувати асинхронні операції без блокування UI
     def start_async_loop(loop: asyncio.AbstractEventLoop) -> None:
@@ -16,9 +20,9 @@ def main() -> None:
     t = threading.Thread(target=start_async_loop, args=(new_loop,), daemon=True, name="AsyncLoopThread")
     t.start()
 
-    # Запускаємо Tkinter mainloop
+    # Запускаємо CustomTkinter mainloop
     try:
-        root = tk.Tk()
+        root = ctk.CTk()
         app = App(root, new_loop)
         root.mainloop()
     except Exception as e:
