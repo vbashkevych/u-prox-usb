@@ -174,7 +174,8 @@ class App:
                                            command=lambda: self.on_theme_change("Dark"))
         self.dark_theme_btn.pack(side="left", padx=2)
 
-        self.auto_theme_btn = ctk.CTkButton(self.theme_frame, text="🌓", width=30, fg_color="transparent",
+        self.auto_theme_btn = ctk.CTkButton(self.theme_frame, text="A", width=30, fg_color="transparent",
+                                           font=ctk.CTkFont(weight="bold"),
                                            text_color=("gray10", "gray90"), hover_color=("gray70", "gray30"),
                                            command=lambda: self.on_theme_change("System"))
         self.auto_theme_btn.pack(side="left", padx=2)
