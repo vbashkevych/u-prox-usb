@@ -6,8 +6,8 @@ from dataclasses import dataclass
 from serial.tools import list_ports
 import serial
 
-from protocol import UProxProtocol, SerialCommunicator
-from events import EventManager, LogEvent, PortsUpdatedEvent, ConnectionStatusEvent
+from .protocol import UProxProtocol, SerialCommunicator
+from .events import EventManager, LogEvent, PortsUpdatedEvent, ConnectionStatusEvent
 
 # VID та PID для чіпа Silicon Labs CP210x
 UPROX_VID: Final[int] = 0x10C4

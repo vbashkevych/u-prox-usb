@@ -2,7 +2,12 @@ import customtkinter as ctk
 import asyncio
 import threading
 import sys
-from gui import App
+import os
+
+# Додаємо кореневу директорію до sys.path, щоб можна було імпортувати src.*
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from src.gui.app_window import App
 
 def main() -> None:
     """Головна точка входу в програму."""
