@@ -1,5 +1,5 @@
 import tkinter as tk
-from tkinter import scrolledtext, messagebox, simpledialog, ttk
+from tkinter import messagebox, simpledialog, ttk
 import customtkinter as ctk
 from typing import Dict, Optional, Final, Any
 import json
@@ -92,44 +92,52 @@ class App:
                                          command=lambda: self.run_async(self.service.erase_mifare_card_async()))
         self.erase_button.pack(padx=20, pady=10)
 
+        self.set_number_button = ctk.CTkButton(self.sidebar_frame, text=translator.get("buttons.set_number"),
+                                              command=self.set_start_number)
+        self.set_number_button.pack(padx=20, pady=10)
+
         self.settings_button = ctk.CTkButton(self.sidebar_frame, text=translator.get("buttons.set_sl3_key"),
                                             command=self.set_sl3_key)
         self.settings_button.pack(padx=20, pady=10, side="bottom")
 
         # --- Main Content Area ---
-        self.main_frame = ctk.CTkFrame(self.root)
-        self.main_frame.pack(side="right", fill="both", expand=True, padx=10, pady=10)
+        self.main_frame = ctk.CTkFrame(self.root, corner_radius=0, fg_color="transparent")
+        self.main_frame.pack(side="right", fill="both", expand=True)
 
-        # Control Frame inside Main Content Area
-        control_frame = ctk.CTkFrame(self.main_frame)
-        control_frame.pack(side="top", fill="x", padx=5, pady=5)
-        control_frame.grid_columnconfigure(1, weight=1)
-
-        ctk.CTkLabel(control_frame, text=translator.get("controls.port_label")).grid(row=0, column=0, sticky='w', padx=5)
-        self.port_combo = ctk.CTkComboBox(control_frame, state="readonly", values=[translator.get('controls.scan_text')])
-        self.port_combo.grid(row=0, column=1, sticky='we', padx=5)
+        # --- Header Frame ---
+        self.header_frame = ctk.CTkFrame(self.main_frame, height=60)
+        self.header_frame.pack(fill="x", padx=20, pady=(20, 0))
+        
+        # Connection Controls
+        self.header_frame.grid_columnconfigure(1, weight=1)
+        
+        ctk.CTkLabel(self.header_frame, text=translator.get("controls.port_label")).grid(row=0, column=0, padx=(20, 10), pady=15)
+        
+        self.port_combo = ctk.CTkOptionMenu(self.header_frame, values=[translator.get('controls.scan_text')])
+        self.port_combo.grid(row=0, column=1, sticky='w', padx=5, pady=15)
         self.port_combo.set(translator.get('controls.scan_text'))
         
-        self.refresh_button = ctk.CTkButton(control_frame, text=translator.get("controls.refresh_button"), width=100,
+        self.refresh_button = ctk.CTkButton(self.header_frame, text=translator.get("controls.refresh_button"), width=100,
                                            command=lambda: self.run_async(self.service.probe_ports_async()))
-        self.refresh_button.grid(row=0, column=2, padx=5)
+        self.refresh_button.grid(row=0, column=2, padx=5, pady=15)
 
-        self.connect_button = ctk.CTkButton(control_frame, text=translator.get("controls.connect_button"), width=100,
+        self.connect_button = ctk.CTkButton(self.header_frame, text=translator.get("controls.connect_button"),
                                            command=self.toggle_connection)
-        self.connect_button.grid(row=0, column=3, padx=10)
-
-        # Log Area
-        self.log_area = scrolledtext.ScrolledText(self.main_frame, state='disabled', wrap=tk.WORD, height=20)
-        self.log_area.pack(padx=10, pady=10, fill="both", expand=True)
-
-        # Additional Commands Frame
-        command_frame = ctk.CTkFrame(self.main_frame)
-        command_frame.pack(fill="x", padx=5, pady=5)
+        self.connect_button.grid(row=0, column=3, padx=10, pady=15)
         
-        ctk.CTkButton(command_frame, text=translator.get("buttons.info"), width=100,
-                     command=lambda: self.run_async(self.service.get_device_info_async())).pack(side="left", padx=5)
-        ctk.CTkButton(command_frame, text=translator.get("buttons.set_number"), width=100,
-                     command=self.set_start_number).pack(side="left", padx=5)
+        self.info_button = ctk.CTkButton(self.header_frame, text=translator.get("buttons.info"), width=100,
+                                        command=lambda: self.run_async(self.service.get_device_info_async()))
+        self.info_button.grid(row=0, column=4, padx=(10, 20), pady=15)
+
+        # --- Log View ---
+        self.log_container = ctk.CTkFrame(self.main_frame)
+        self.log_container.pack(fill="both", expand=True, padx=20, pady=20)
+
+        self.log_label = ctk.CTkLabel(self.log_container, text=translator.get("logs.title"), font=ctk.CTkFont(weight="bold"))
+        self.log_label.pack(anchor="w", padx=10, pady=(10, 5))
+
+        self.log_area = ctk.CTkTextbox(self.log_container, activate_scroll=True)
+        self.log_area.pack(fill="both", expand=True, padx=2, pady=2)
 
     def on_log_event(self, event: LogEvent) -> None:
         self.root.after(0, self._update_log_area, event.message)
@@ -161,7 +169,7 @@ class App:
             self.refresh_button.configure(state='disabled')
         else:
             self.connect_button.configure(text=translator.get("controls.connect_button"))
-            self.port_combo.configure(state='readonly')
+            self.port_combo.configure(state='normal')
             self.refresh_button.configure(state='normal')
 
     def toggle_connection(self) -> None:

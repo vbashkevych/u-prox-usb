@@ -15,6 +15,9 @@
         "stop_issue": "Зупинити Випуск",
         "set_sl3_key": "Встановити SL3 Ключ"
     },
+    "logs": {
+        "title": "Логи"
+    },
     "dialogs": {
         "error_title": "Помилка",
         "input_title": "Введення",

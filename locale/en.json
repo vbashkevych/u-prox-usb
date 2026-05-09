@@ -15,6 +15,9 @@
         "stop_issue": "Stop Issue",
         "set_sl3_key": "Set SL3 Key"
     },
+    "logs": {
+        "title": "Logs"
+    },
     "dialogs": {
         "error_title": "Error",
         "input_title": "Input",
