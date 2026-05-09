@@ -21,6 +21,9 @@
     "dialogs": {
         "error_title": "Error",
         "input_title": "Input",
+        "settings_title": "Settings",
+        "theme_label": "Theme:",
+        "language_label": "Language:",
         "no_port_selected": "No COM port selected.",
         "sl3_key_prompt": "Enter SL3 key (32 HEX chars):",
         "start_number_prompt": "Enter card number:",

@@ -95,6 +95,42 @@ class CardNumberDialog(ctk.CTkToplevel):
     def on_cancel(self):
         self.destroy()
 
+class SettingsDialog(ctk.CTkToplevel):
+    def __init__(self, parent, current_lang, current_theme):
+        super().__init__(parent)
+        self.title(translator.get("dialogs.settings_title"))
+        self.geometry("350x300")
+        self.result = None
+
+        self.label = ctk.CTkLabel(self, text=translator.get("dialogs.settings_title"), font=ctk.CTkFont(size=20, weight="bold"))
+        self.label.pack(padx=20, pady=20)
+
+        # Language Selection
+        self.lang_label = ctk.CTkLabel(self, text=translator.get("dialogs.language_label"))
+        self.lang_label.pack(padx=20, pady=(10, 0))
+        self.lang_menu = ctk.CTkOptionMenu(self, values=["uk", "en"], command=self.on_lang_change)
+        self.lang_menu.set(current_lang)
+        self.lang_menu.pack(padx=20, pady=5)
+
+        # Theme Selection
+        self.theme_label = ctk.CTkLabel(self, text=translator.get("dialogs.theme_label"))
+        self.theme_label.pack(padx=20, pady=(10, 0))
+        self.theme_menu = ctk.CTkOptionMenu(self, values=["System", "Light", "Dark"], command=self.on_theme_change)
+        self.theme_menu.set(current_theme)
+        self.theme_menu.pack(padx=20, pady=5)
+
+        self.close_button = ctk.CTkButton(self, text=translator.get("dialogs.ok"), command=self.destroy)
+        self.close_button.pack(padx=20, pady=20)
+
+        self.grab_set()
+
+    def on_lang_change(self, new_lang):
+        translator.load_language(new_lang)
+        # We need to trigger a UI refresh from the App class
+
+    def on_theme_change(self, new_theme):
+        ctk.set_appearance_mode(new_theme)
+
 class App:
     def __init__(self, root: ctk.CTk, loop: asyncio.AbstractEventLoop) -> None:
         self.root: ctk.CTk = root
@@ -151,9 +187,9 @@ class App:
                                               command=self.set_start_number)
         self.set_number_button.pack(padx=20, pady=10, fill="x")
 
-        self.settings_button = ctk.CTkButton(self.sidebar_frame, text="⚙ " + translator.get("buttons.set_sl3_key"),
-                                            anchor="w", state="disabled",
-                                            command=self.set_sl3_key)
+        self.settings_button = ctk.CTkButton(self.sidebar_frame, text="⚙ " + translator.get("dialogs.settings_title"),
+                                            anchor="w",
+                                            command=self.open_settings)
         self.settings_button.pack(padx=20, pady=20, side="bottom", fill="x")
 
         # --- Main Content Area ---
@@ -167,7 +203,8 @@ class App:
         # Connection Controls
         self.header_frame.grid_columnconfigure(1, weight=1)
         
-        ctk.CTkLabel(self.header_frame, text=translator.get("controls.port_label"), font=ctk.CTkFont(weight="bold")).grid(row=0, column=0, padx=(20, 10), pady=15)
+        self.port_label = ctk.CTkLabel(self.header_frame, text=translator.get("controls.port_label"), font=ctk.CTkFont(weight="bold"))
+        self.port_label.grid(row=0, column=0, padx=(20, 10), pady=15)
         
         self.port_combo = ctk.CTkOptionMenu(self.header_frame, values=[translator.get('controls.scan_text')], width=200)
         self.port_combo.grid(row=0, column=1, sticky='we', padx=5, pady=15)
@@ -291,3 +328,27 @@ class App:
         num = dialog.result
         if num:
             self.run_async(self.service.set_mifare_start_number_async(num))
+
+    def open_settings(self) -> None:
+        SettingsDialog(self.root, translator.language, ctk.get_appearance_mode())
+        self.refresh_ui_text()
+
+    def refresh_ui_text(self) -> None:
+        """Оновлює текст на всіх віджетах після зміни мови."""
+        self.root.title(translator.get("app_title"))
+        self.sidebar_label.configure(text=translator.get("app_title"))
+        self.issue_button.configure(text="💳 " + translator.get("buttons.start_issue"))
+        self.stop_button.configure(text="⏹ " + translator.get("buttons.stop_issue"))
+        self.erase_button.configure(text="🗑 " + translator.get("buttons.erase_card"))
+        self.set_number_button.configure(text="🔢 " + translator.get("buttons.set_number"))
+        self.settings_button.configure(text="⚙ " + translator.get("dialogs.settings_title"))
+        
+        # Header
+        self.port_label.configure(text=translator.get("controls.port_label"))
+        self.refresh_button.configure(text="⟳") 
+        self._update_ui_connection_status(self.service.is_connected)
+        self.info_button.configure(text="ℹ " + translator.get("buttons.info"))
+        self.log_label.configure(text="📜 " + translator.get("logs.title"))
+        
+        if not self.service.is_connected:
+             self.port_combo.set(translator.get('controls.scan_text'))

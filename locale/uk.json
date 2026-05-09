@@ -21,6 +21,9 @@
     "dialogs": {
         "error_title": "Помилка",
         "input_title": "Введення",
+        "settings_title": "Налаштування",
+        "theme_label": "Тема:",
+        "language_label": "Мова:",
         "no_port_selected": "Не вибрано COM порт.",
         "sl3_key_prompt": "Введіть SL3 ключ (32 HEX символи):",
         "start_number_prompt": "Введіть номер картки:",
