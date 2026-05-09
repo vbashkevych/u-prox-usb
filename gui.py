@@ -262,7 +262,6 @@ class App:
             self.stop_button.configure(state="normal")
             self.erase_button.configure(state="normal")
             self.set_number_button.configure(state="normal")
-            self.settings_button.configure(state="normal")
             self.info_button.configure(state="normal")
         else:
             self.connect_button.configure(
@@ -278,7 +277,6 @@ class App:
             self.stop_button.configure(state="disabled")
             self.erase_button.configure(state="disabled")
             self.set_number_button.configure(state="disabled")
-            self.settings_button.configure(state="disabled")
             self.info_button.configure(state="disabled")
 
     def toggle_connection(self) -> None:
