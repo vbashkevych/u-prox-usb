@@ -73,41 +73,63 @@ class App:
         self.events.subscribe(ConnectionStatusEvent, self.on_connection_status_event)
 
     def create_widgets(self) -> None:
-        control_frame = tk.Frame(self.root, padx=10, pady=10)
-        control_frame.pack(side=tk.TOP, fill=tk.X)
+        # --- Sidebar ---
+        self.sidebar_frame = ctk.CTkFrame(self.root, width=200, corner_radius=0)
+        self.sidebar_frame.pack(side="left", fill="y")
+        
+        self.sidebar_label = ctk.CTkLabel(self.sidebar_frame, text=translator.get("app_title"), font=ctk.CTkFont(size=20, weight="bold"))
+        self.sidebar_label.pack(padx=20, pady=(20, 10))
+
+        self.issue_button = ctk.CTkButton(self.sidebar_frame, text=translator.get("buttons.start_issue"),
+                                         command=lambda: self.run_async(self.service.start_issue_sl3_async()))
+        self.issue_button.pack(padx=20, pady=10)
+
+        self.stop_button = ctk.CTkButton(self.sidebar_frame, text=translator.get("buttons.stop_issue"),
+                                        command=lambda: self.run_async(self.service.stop_issue_async()))
+        self.stop_button.pack(padx=20, pady=10)
+
+        self.erase_button = ctk.CTkButton(self.sidebar_frame, text=translator.get("buttons.erase_card"),
+                                         command=lambda: self.run_async(self.service.erase_mifare_card_async()))
+        self.erase_button.pack(padx=20, pady=10)
+
+        self.settings_button = ctk.CTkButton(self.sidebar_frame, text=translator.get("buttons.set_sl3_key"),
+                                            command=self.set_sl3_key)
+        self.settings_button.pack(padx=20, pady=10, side="bottom")
+
+        # --- Main Content Area ---
+        self.main_frame = ctk.CTkFrame(self.root)
+        self.main_frame.pack(side="right", fill="both", expand=True, padx=10, pady=10)
+
+        # Control Frame inside Main Content Area
+        control_frame = ctk.CTkFrame(self.main_frame)
+        control_frame.pack(side="top", fill="x", padx=5, pady=5)
         control_frame.grid_columnconfigure(1, weight=1)
 
-        tk.Label(control_frame, text=translator.get("controls.port_label")).grid(row=0, column=0, sticky='w', padx=5)
-        self.port_combo = ttk.Combobox(control_frame, state="readonly")
-        self.port_combo.grid(row=0, column=1, sticky='we')
+        ctk.CTkLabel(control_frame, text=translator.get("controls.port_label")).grid(row=0, column=0, sticky='w', padx=5)
+        self.port_combo = ctk.CTkComboBox(control_frame, state="readonly", values=[translator.get('controls.scan_text')])
+        self.port_combo.grid(row=0, column=1, sticky='we', padx=5)
         self.port_combo.set(translator.get('controls.scan_text'))
         
-        self.refresh_button = tk.Button(control_frame, text=translator.get("controls.refresh_button"), 
-                                       command=lambda: self.run_async(self.service.probe_ports_async()))
+        self.refresh_button = ctk.CTkButton(control_frame, text=translator.get("controls.refresh_button"), width=100,
+                                           command=lambda: self.run_async(self.service.probe_ports_async()))
         self.refresh_button.grid(row=0, column=2, padx=5)
 
-        self.connect_button = tk.Button(control_frame, text=translator.get("controls.connect_button"), 
-                                       command=self.toggle_connection)
+        self.connect_button = ctk.CTkButton(control_frame, text=translator.get("controls.connect_button"), width=100,
+                                           command=self.toggle_connection)
         self.connect_button.grid(row=0, column=3, padx=10)
 
-        self.log_area = scrolledtext.ScrolledText(self.root, state='disabled', wrap=tk.WORD, height=20)
-        self.log_area.pack(padx=10, pady=10, fill=tk.BOTH, expand=True)
+        # Log Area
+        self.log_area = scrolledtext.ScrolledText(self.main_frame, state='disabled', wrap=tk.WORD, height=20)
+        self.log_area.pack(padx=10, pady=10, fill="both", expand=True)
 
-        command_frame = tk.Frame(self.root, padx=10, pady=5)
-        command_frame.pack(fill=tk.X)
+        # Additional Commands Frame
+        command_frame = ctk.CTkFrame(self.main_frame)
+        command_frame.pack(fill="x", padx=5, pady=5)
         
-        tk.Button(command_frame, text=translator.get("buttons.info"), 
-                  command=lambda: self.run_async(self.service.get_device_info_async())).pack(side=tk.LEFT, padx=5)
-        tk.Button(command_frame, text=translator.get("buttons.erase_card"), 
-                  command=lambda: self.run_async(self.service.erase_mifare_card_async())).pack(side=tk.LEFT, padx=5)
-        tk.Button(command_frame, text=translator.get("buttons.set_number"), 
-                  command=self.set_start_number).pack(side=tk.LEFT, padx=5)
-        tk.Button(command_frame, text=translator.get("buttons.start_issue"), 
-                  command=lambda: self.run_async(self.service.start_issue_sl3_async())).pack(side=tk.LEFT, padx=5)
-        tk.Button(command_frame, text=translator.get("buttons.stop_issue"), 
-                  command=lambda: self.run_async(self.service.stop_issue_async())).pack(side=tk.LEFT, padx=5)
-        tk.Button(command_frame, text=translator.get("buttons.set_sl3_key"), 
-                  command=self.set_sl3_key).pack(side=tk.LEFT, padx=5)
+        ctk.CTkButton(command_frame, text=translator.get("buttons.info"), width=100,
+                     command=lambda: self.run_async(self.service.get_device_info_async())).pack(side="left", padx=5)
+        ctk.CTkButton(command_frame, text=translator.get("buttons.set_number"), width=100,
+                     command=self.set_start_number).pack(side="left", padx=5)
 
     def on_log_event(self, event: LogEvent) -> None:
         self.root.after(0, self._update_log_area, event.message)
@@ -123,9 +145,9 @@ class App:
 
     def _update_ports_ui(self, event: PortsUpdatedEvent) -> None:
         self.port_map = event.port_map
-        self.port_combo['values'] = event.ports
+        self.port_combo.configure(values=event.ports)
         if event.ports:
-            self.port_combo.current(0)
+            self.port_combo.set(event.ports[0])
         else:
             self.port_combo.set('')
 
@@ -134,13 +156,13 @@ class App:
 
     def _update_ui_connection_status(self, is_connected: bool) -> None:
         if is_connected:
-            self.connect_button.config(text=translator.get("controls.disconnect_button"))
-            self.port_combo.config(state='disabled')
-            self.refresh_button.config(state='disabled')
+            self.connect_button.configure(text=translator.get("controls.disconnect_button"))
+            self.port_combo.configure(state='disabled')
+            self.refresh_button.configure(state='disabled')
         else:
-            self.connect_button.config(text=translator.get("controls.connect_button"))
-            self.port_combo.config(state='readonly')
-            self.refresh_button.config(state='normal')
+            self.connect_button.configure(text=translator.get("controls.connect_button"))
+            self.port_combo.configure(state='readonly')
+            self.refresh_button.configure(state='normal')
 
     def toggle_connection(self) -> None:
         if not self.service.is_connected:
