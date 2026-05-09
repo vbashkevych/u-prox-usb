@@ -151,19 +151,33 @@ class App:
                                               command=self.set_start_number)
         self.set_number_button.pack(padx=20, pady=10, fill="x")
 
-        # Language Selection
-        self.lang_label = ctk.CTkLabel(self.sidebar_frame, text=translator.get("dialogs.language_label"))
-        self.lang_label.pack(padx=20, pady=(20, 0))
-        self.lang_menu = ctk.CTkOptionMenu(self.sidebar_frame, values=["uk", "en"], command=self.on_lang_change)
-        self.lang_menu.set(translator.language)
-        self.lang_menu.pack(padx=20, pady=5, fill="x")
+        # --- Settings Row (Bottom) ---
+        self.settings_row = ctk.CTkFrame(self.sidebar_frame, fg_color="transparent")
+        self.settings_row.pack(padx=10, pady=20, side="bottom", fill="x")
 
-        # Theme Selection
-        self.theme_label = ctk.CTkLabel(self.sidebar_frame, text=translator.get("dialogs.theme_label"))
-        self.theme_label.pack(padx=20, pady=(10, 0))
-        self.theme_menu = ctk.CTkOptionMenu(self.sidebar_frame, values=["System", "Light", "Dark"], command=self.on_theme_change)
-        self.theme_menu.set(ctk.get_appearance_mode())
-        self.theme_menu.pack(padx=20, pady=(5, 20), fill="x")
+        # Language Selection (Compact)
+        self.lang_menu = ctk.CTkOptionMenu(self.settings_row, values=["uk", "en"], width=60, command=self.on_lang_change)
+        self.lang_menu.set(translator.language)
+        self.lang_menu.pack(side="left", padx=5)
+
+        # Theme Icons
+        self.theme_frame = ctk.CTkFrame(self.settings_row, fg_color="transparent")
+        self.theme_frame.pack(side="right", padx=5)
+
+        self.light_theme_btn = ctk.CTkButton(self.theme_frame, text="☀️", width=30, fg_color="transparent", 
+                                            text_color=("gray10", "gray90"), hover_color=("gray70", "gray30"),
+                                            command=lambda: self.on_theme_change("Light"))
+        self.light_theme_btn.pack(side="left", padx=2)
+
+        self.dark_theme_btn = ctk.CTkButton(self.theme_frame, text="🌙", width=30, fg_color="transparent",
+                                           text_color=("gray10", "gray90"), hover_color=("gray70", "gray30"),
+                                           command=lambda: self.on_theme_change("Dark"))
+        self.dark_theme_btn.pack(side="left", padx=2)
+
+        self.auto_theme_btn = ctk.CTkButton(self.theme_frame, text="🌓", width=30, fg_color="transparent",
+                                           text_color=("gray10", "gray90"), hover_color=("gray70", "gray30"),
+                                           command=lambda: self.on_theme_change("System"))
+        self.auto_theme_btn.pack(side="left", padx=2)
 
         # --- Main Content Area ---
         self.main_frame = ctk.CTkFrame(self.root, corner_radius=0, fg_color="transparent")
@@ -317,8 +331,6 @@ class App:
         self.stop_button.configure(text="⏹ " + translator.get("buttons.stop_issue"))
         self.erase_button.configure(text="🗑 " + translator.get("buttons.erase_card"))
         self.set_number_button.configure(text="🔢 " + translator.get("buttons.set_number"))
-        self.lang_label.configure(text=translator.get("dialogs.language_label"))
-        self.theme_label.configure(text=translator.get("dialogs.theme_label"))
         
         # Header
         self.port_label.configure(text=translator.get("controls.port_label"))
