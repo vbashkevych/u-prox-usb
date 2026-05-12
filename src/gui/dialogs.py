@@ -18,6 +18,14 @@ class CardNumberDialog(ctk.CTkToplevel):
         self.entry.pack(padx=20, pady=10)
         self.entry.focus_set()
 
+        # Register validation
+        vcmd = (self.register(self.validate_input), '%P')
+        self.entry.configure(validate="key", validatecommand=vcmd)
+
+        # Bind Ctrl+V to the entry widget
+        self.entry.bind("<Control-v>", lambda e: self._on_paste())
+        self.entry.bind("<Control-V>", lambda e: self._on_paste())
+
         self.radio_frame = ctk.CTkFrame(self, fg_color="transparent")
         self.radio_frame.pack(padx=20, pady=5)
 
@@ -57,3 +65,22 @@ class CardNumberDialog(ctk.CTkToplevel):
 
     def on_cancel(self):
         self.destroy()
+
+    def _on_paste(self):
+        """Explicitly handle paste to ensure it works."""
+        try:
+            text = self.clipboard_get()
+            if text:
+                self.entry.insert(tk.INSERT, text)
+        except tk.TclError:
+            pass
+        return "break"  # Prevent default handling
+
+    def validate_input(self, P):
+        fmt = self.format_var.get()
+        if not P: # Allow empty
+            return True
+        if fmt == "DEC":
+            return P.isdigit()
+        else: # HEX
+            return all(c in "0123456789abcdefABCDEF" for c in P)
